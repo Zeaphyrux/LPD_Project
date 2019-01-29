@@ -21,8 +21,11 @@ import encrypt
 import settings
 import sqlite
 import RSA
+import RSA_create
+import processLogs
 #Variaveis usadas ao longo do programa
-Parameters = ["-h", "-v", "-nat", "-g", "-uF", "-pS", "-p", "-db", "-e", "-d"]
+Parameters = ["-h", "-v", "-nat", "-g", "-uF", "-pS", "-p", "-db", "-e", "-d", "-c", "-csv", 
+                    "-pdf", '-pL']
 Verbouse = False
 Geo_ip = 0
 PortIp = 0
@@ -31,8 +34,14 @@ Ports = "0-1024"
 EstablishedConnections = False
 Database = False
 DatabaseParameters = ["check", "sql","cT", "dT", "iT", "sT", "uId", "dId" ]
-RSA_do = 0 # 1 for encript, 2 for decript
-RSA_files = ''
+RSA_do = 0 # 1 for encript, 2 for decript, 3 for key gen
+RSA_files = []
+ProcessLogs = 0
+ProcessLogs_Protocol = ''
+ProcessLogs_File = ''
+WriteCsv = 0
+WritePdf = 0
+
 
 
     #########################################
@@ -99,15 +108,20 @@ def usage():
     print subprocess.check_output('figlet LPD --metal',shell=True)
     print "Projecto de Linguagens de Programacao Dinamicas\n"
     print "   {}:\t\tHelp menu (This) ".format(Parameters[0])
-    print "   {}:\t\tEstablished Connections ".format(Parameters[1]) 
-    print "   {}:\tVerbouse mode        ".format(Parameters[2])
-    print "   {}:\t\tgeoip location           ex: -g  192.168.1.1".format(Parameters[3])
+    print "   {}:\tEstablished Connections ".format(Parameters[2]) 
+    print "   {}:\t\tVerbouse mode        ".format(Parameters[1])
+    print "   {}:\t\tGeoip location           ex: -g  192.168.1.1".format(Parameters[3])
     print "   {}:\t\tPort Scan                ex: -pS 192.168.1.1".format(Parameters[5])
     print "   {}:\t\tPorts (0-1024)           ex: -p  0-2042  ".format(Parameters[6])
     print "   {}:\t\tUdp Flood (CAUTION)      ex: -uF 192.168.1.1".format(Parameters[4])
-    print "   {}:\t\tRSA Encription           ex: -e <file>".format(Parameters[8])
-    print "   {}:\t\tRSA Decription           ex: -d <file>".format(Parameters[9])
-    print "   {}:\t\tDatabase Funcionalities  ex: -db args".format(Parameters[7])
+    print "   {}:\t\tRSA Encription           ex: -e <file1> <file2> ...".format(Parameters[8])
+    print "   {}:\t\tRSA Decription           ex: -d <file1> <file2> ...".format(Parameters[9])
+    print "   {}:\t\tRSA Create Key Pair      ex: -c ".format(Parameters[10])
+    print "   {}:\t\tProcess Logs(http, ssh)  ex: -pL http <file>".format(Parameters[13])
+    print "      \t\t                         ex: -pL ssh  <file>"
+    print "   {}:\tExport to csv (.config)  ex: -csv <file>".format(Parameters[11])
+    print "   {}:\tExport to pdf (.config)  ex: -pdf <file>".format(Parameters[12])
+    print "   {}:\t\tDatabase Funcionalities  ex: -db args".format(Parameters[7])    
     print "                         -db {} : Checks database status".format(DatabaseParameters[0])
     print "                         -db {}   : Executes Sql Query".format(DatabaseParameters[1])
     print "                         -db {}    : Creates table".format(DatabaseParameters[2])
@@ -205,24 +219,59 @@ def start():
 #RSA
         if sys.argv[i] == Parameters[8]:
             global RSA_do
-            global RSA_file
+            global RSA_files
             try:
-                RSA_file = sys.argv[i+1]
+                for x in range((len(sys.argv)) - i-1):
+                    if sys.argv[i+1+x].startswith('-') or not bool(sys.argv[i+x+i]):
+                        break
+                    else:
+                        RSA_files.append(sys.argv[i+x+1])
+
                 RSA_do = 1
             except IndexError:
                 print "No file to encript specified"
         if sys.argv[i] == Parameters[9]:
-            global RSA_do
-            global RSA_file
+
             try:
-                RSA_file = sys.argv[i+1]
-                RSA_do = 2s
+                for x in range((len(sys.argv)) - i-1):
+                    if sys.argv[i+1+x].startswith('-') or not bool(sys.argv[i+x+i]):
+                        break
+                    else:
+                        RSA_files.append(sys.argv[i+x+1])
+                RSA_do = 2
             except IndexError:
                 print "No file to decript specified"
+        if sys.argv[i] == Parameters[10]:
+            RSA_do = 3;
+        if sys.argv[i] == Parameters[11]:
+            global WriteCsv
+            global WriteCsvPath
+            WriteCsv = 1
+            WriteCsvPath = settings.getCsv()
 
+        if sys.argv[i] == Parameters[12]:
+            global WritePdfPath
+            global WritePdf
+            WritePdf = 1
+            WritePdfPath = settings.getPdf()
+
+        if sys.argv[i] == Parameters[13]:
+            global ProcessLogs
+            global ProcessLogs_File
+            global ProcessLogs_Protocol
+            try:
+                ProcessLogs_Protocol = sys.argv[i+1]
+                ProcessLogs = 1
+                ProcessLogs_File = sys.argv[i+2]
+            except IndexError:
+                print "No protocol specified"
+            if not ProcessLogs_File:
+                print "No file specified"
+                exit()
 
 #check for each flag and run the function
 def run():
+
     if Geo_ip != 0:
         
         geoip.geoIp(Geo_ip)
@@ -239,9 +288,26 @@ def run():
         #print "encripted"
 
     if RSA_do == 1:
-        RSA.runEncrypt(RSA_file, keyFile=settings.getKeyPublic())
+        for y in range(len(RSA_files)):
+            RSA.runEncrypt(RSA_files[y], keyFile=settings.getKeyPublic())
     if RSA_do == 2:
-        RSA.runDecrypt(RSA_file, keyFile=settings.getKeyPrivate())
+        for y in range(len(RSA_files)):
+            RSA.runDecrypt(RSA_files[y], keyFile=settings.getKeyPrivate())
+    if RSA_do == 3:
+        keys_filename = raw_input("Enter the filename of the keys -->  ")
+        RSA_create.run(keys_filename)
+    if WriteCsv:
+        print "WriteCsv", WriteCsvPath
+    if WritePdf:
+        print "WritePdf", WritePdfPath
+    if ProcessLogs:
+        while(1):
+            output = raw_input("Write where? (csv / pdf / db) -->  ")
+            if output=='csv' or output=='pdf' or output=='db':
+                break
+            else:
+                print "Output format not understood, try again"
+        processLogs.run(ProcessLogs_File, ProcessLogs_Protocol, output)
     if Database:
         sqlite.checkDb()
         if DatabaseAction==DatabaseParameters[0]:

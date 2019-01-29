@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import csv
 
-PATH = "output/csv/"
+PATH = "../output/csv/"
 FILENAME = "teste.csv"
 
 
@@ -16,9 +16,9 @@ def writeCsv(data,filename=FILENAME, path=PATH):
         filename+='.csv'
 
     filename = path+filename
-    f = open(filename, 'wb')
+    f = open(filename, 'ab')
     
-    writer = csv.writer(f, delimiter=' ',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    writer = csv.writer(f, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
     
     writer.writerow(data)
 
@@ -43,10 +43,10 @@ def readCsv(filename, path=PATH):
 
 
 def main():
-    test = [[1,2,3,4,5,6], [1,2,3],[32,1,4]]
-    #writeCsv(test, 'teste.csv')
-    a = readCsv('teste.csv')
-    print a
+    test = [1,2,3,4,5,6]
+    writeCsv(test, 'teste1.csv')
+    #a = readCsv('teste.csv')
+    #print a
 
 
 if __name__=='__main__':

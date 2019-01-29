@@ -51,6 +51,11 @@ def exportKey(key, filename):
     else:
         print "Incorrect parameters"
 
+def run(filename):
+    generateKeys()
+    exportKey('both', filename)
+
+
 def main():
     generateKeys()
     exportKey('both', 'Key')

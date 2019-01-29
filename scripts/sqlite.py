@@ -2,10 +2,12 @@
 import sys
 import os 
 import sqlite3
+sys.path.insert(0, 'scripts')
 
 PATH = 'output/'
-DBNAME = 'project.db'
+DBNAME = 'LPD.db'
 import settings
+import RSA
 
 
 DBNAME = PATH+DBNAME
@@ -15,6 +17,13 @@ global conn
 
 def checkDb(dbname=DBNAME):
     '''check if db exists, if not it creates it'''
+    #print dbname
+    settings.init()
+    #dbname = settings.getDatabase()
+    #RSA.runDecrypt(dbname+'.crypt', keyFile=settings.getKeyPrivate())
+
+
+
     dbExists = not os.path.exists(dbname)
     global cursor
     global conn
@@ -93,15 +102,21 @@ def insertIntoTable(table, field, value):
     #formatting values to insert
     #value = value[1:-1].split(',')
     values = ''
+    fields = ''
+    #print value
+
     for i in range(len(value)):
         if i==(len(value)-1):
             values+= "'"+value[i]+"'"
+            fields+= field[i]
         else:
             values+= "'"+value[i]+"',"
+            fields+= field[i]+","
 
     
-
-    sql = ''' INSERT INTO {0}({1})  VALUES("{2}") '''.format(table, field, value)
+    #print values
+    sql = ''' INSERT INTO {0}({1})  VALUES({2}) '''.format(table, fields, values)
+    #print sql
     #print sql
     cursor.execute(sql)
     conn.commit()
@@ -163,25 +178,18 @@ def deleteId(table, id):
     cursor.execute(sql)
     print "Id {0} deleted from {1}".format(id, table)
  
-def userUpdateId():
-    idd       = raw_input("Id to update           -->  ")
-    tableName = raw_input("Table name to update   -->  ")
-    fieldName = raw_input("Field name to update   -->  ")
-    valueName = raw_input("Value to set         -->  ")
-    updateId(tableName, fieldName, valueName, idd)
-def userDeleteId():
-    idd       = raw_input("Id to delete      --> ")
-    tableName = raw_input("Table name        --> ")
-    deleteId(tableName, idd)
 
 '''
 Commits changes anc closes database
 '''
 def closeDb():
     global conn
+
     conn.commit()
     conn.close()
     print "Databased closed"
+    #settings.init()
+    #RSA.runEncrypt(RSA_files[y], keyFile=settings.getKeyPublic())
 
 
 #####################################
@@ -246,6 +254,16 @@ def userSelectTable():
     rowNumber = raw_input("Number of rows( 0 for all)-->  ")
     selectFromTable(tableName, fieldName, rowNumber)
 
+def userUpdateId():
+    idd       = raw_input("Id to update           -->  ")
+    tableName = raw_input("Table name to update   -->  ")
+    fieldName = raw_input("Field name to update   -->  ")
+    valueName = raw_input("Value to set         -->  ")
+    updateId(tableName, fieldName, valueName, idd)
+def userDeleteId():
+    idd       = raw_input("Id to delete      --> ")
+    tableName = raw_input("Table name        --> ")
+    deleteId(tableName, idd)
 
 
 def main():

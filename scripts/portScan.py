@@ -2,16 +2,22 @@
 from datetime import datetime
 import socket
 import sys
+import sqlite
+sys.path.insert(0, 'scripts')
+
+import settings
 
 
 def portScan(ip, ports):
+    settings.init()
+    db = settings.getDatabaseStatus()
     r = ports.split('-')
     r1 = int(r[0])
     r2 = int(r[1])
-
-    print "*"*20
+    openPorts = ''
+    print "*"*40
     print "     Scanning target -->   ", ip
-    print "*"*20
+    print "*"*40
     t1 = datetime.now()
     
     try:
@@ -21,6 +27,7 @@ def portScan(ip, ports):
             result = sock.connect_ex((ip, port))
             if result ==0:
                 print "Port Open -->\t", port
+                openPorts+= str(port) + ', '
             sock.close()
     except KeyboardInterrupt:
         print "Press any key to stop"
@@ -34,5 +41,23 @@ def portScan(ip, ports):
     t2 = datetime.now()
     total = t2-t1
     print "Scanning complete in ", total
+    if openPorts:
+        openPorts = openPorts[:-2]
+    else:
+        openPorts = 'None'
+    if db:
+        print "Inserting data gathered in the database"
+        sqlite.checkDb()
+        now = datetime.now()
+        now = str(now)
+        now = now[:-7]
 
 
+        fields = ['Data', 'Ip', 'RangeScanned', 'PortsOpen']
+        values = [now, ip,ports, openPorts  ]
+
+        sqlite.insertIntoTable('Script', fields, values)
+
+        #print fields
+        #print values
+        sqlite.closeDb()
