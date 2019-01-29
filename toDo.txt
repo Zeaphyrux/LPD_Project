@@ -1,0 +1,18 @@
+portscan                                V
+conexoes ativas                         V
+processar ficheiro log de 2 servicos+   
+outras
+    geoip                               V
+report pdf
+listas de info em csv
+produzir e processar sqlite
+
+plus
+    bibl de rede
+    libpcap
+    reportlab
+    matplotlib graficos com estatisticas
+    mapas geograficos geoip
+    autenticacao no acesso
+    cifragem dos dados (armazenados ou sqliet)
+

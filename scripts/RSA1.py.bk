@@ -1,0 +1,125 @@
+#!/usr/bin/python
+
+import sys
+from Crypto.PublicKey import RSA
+
+
+DEFAULT_BLOCK_SIZE = 128
+BYTE_SYZE = 256
+KEY_PUBLIC = RSA.importKey(open('RSApublic_Key.pem', 'r'))
+KEY_PRIVATE = RSA.importKey(open('RSAprivate_Key.pem', 'r'))
+
+
+
+def getBlocksFromText(message, blockSize=DEFAULT_BLOCK_SIZE):
+	'''Converts a string message to a list of block integers'''
+
+	print message
+	print '\n\n'
+	messageBytes = message.encode('ascii') #string to bytes
+	blockInts = []
+	print messageBytes
+	for blockStart in range(0, len(messageBytes), blockSize):
+		blockInt = 0
+		for i in range(blockStart, min(blockStart + blockSize, len(messageBytes))):
+			blockInt += messageBytes[i] * (BYTE_SYZE ** (i%blockSize))
+		blockInts.append(blockInt)
+	return blockInts
+
+def getTextFromBlocks(blockInts, messageLength,blockSize=DEFAULT_BLOCK_SIZE):
+	'''Converts a list of block integers to the original message string'''
+	message = []
+	for blockInt in blockInts:
+		blockMessage = []
+		for i in range(blockSize-1, -1, -1):
+			if len(message) + i<messageLength:
+				asciiNumber = blockInt // (BYTE_SYZE ** i)
+				blockInt = blockInt % (BYTE_SYZE ** i)
+				blockMessage.insert(0, chr(asciiNumber))
+		message.extend(blockMessage)
+	return ''.join(message)
+
+def encryptMessage(message, key, blockSize=DEFAULT_BLOCK_SIZE):
+	'''Converts string into a list of block integers and
+	encrypts each block integer. Pass PUBLIC KEY to encrypt'''
+	encryptedBlocks = []
+	
+
+	for block in getBlocksFromText(message, blockSize):
+		encryptedBlocks.append(KEY_PUBLIC.encrypted(block, 32))
+	return encryptedBlocks
+
+def decryptMessage(encryptedBlocks, messageLength, key, blockSize=DEFAULT_BLOCK_SIZE):
+
+
+	decryptedBlocks = []
+	n, d = key
+	for block in encryptedBlocks:
+		decryptedBlocks.append(pow(block, d, n))
+	return getTextFromBlocks(decryptedBlocks, messageLength, blockSize)
+
+
+
+def encryptAndWriteToFile(messageFilename, keyFilename, message, blockSize=DEFAULT_BLOCK_SIZE):
+
+	keySize, n, e = readKeyFile(keyFilename)
+
+	# Check that key size is greater than block size.
+	if keySize < blockSize * 8: # * 8 to convert bytes to bits
+		sys.exit('ERROR: Block size is %s bits and key size is %s bits. The RSA cipher requires the block size to be equal to or less than the keysize. Either increase the block size or use different keys.' % (blockSize * 8, keySize))
+	
+	encryptedBlocks = encryptMessage(message, (n, e), blockSize)
+	# Convert the large int values to one string value.
+	for i in range(len(encryptedBlocks)):
+		encryptedBlocks[i] = str(encryptedBlocks[i])
+	encryptedContent = ','.join(encryptedBlocks)
+	# Write out the encrypted string to the output file.
+	encryptedContent = '%s_%s_%s' % (len(message), blockSize,
+	encryptedContent)
+	fo = open(messageFilename, 'w')
+	fo.write(encryptedContent)
+	fo.close()
+	# Also return the encrypted string.
+	return encryptedContent
+
+def readFromFileAndDecrypt(messageFilename, keyFilename):
+
+	# Using a key from a key file, read an encrypted message from a file
+	# and then decrypt it. Returns the decrypted message string.
+	keySize, n, d = readKeyFile(keyFilename)
+	# Read in the message length and the encrypted message from the file.
+	fo = open(messageFilename)
+	content = fo.read()
+	messageLength, blockSize, encryptedMessage = content.split('_')
+	messageLength = int(messageLength)
+	blockSize = int(blockSize)
+	if keySize < blockSize * 8: # * 8 to convert bytes to bits
+		sys.exit('ERROR: Block size is %s bits and key size is %s bits.The RSA cipher requires the block size to be equal to or less than the key size. Did you specify the correct key file and encrypted file?' % (blockSize *8, keySize))
+	encryptedBlocks = []
+	for block in encryptedMessage.split(','):
+		encryptedBlocks.append(int(block))
+
+	return decryptMessage(encryptedBlocks, messageLength, (n,d),blockSize)
+
+
+def main():
+	#print KEY_PRIVATE
+	#print KEY_PUBLIC    
+	message = '''"Journalists belong in the gutter because that is
+where the ruling classes throw their guilty secrets." -Gerald Priestland "The392
+http://inventwithpython.com/hacking
+Founding Fathers gave the free press the protection it must have to bare the
+secrets of government and inform the people." -Hugo Black'''
+	filename = 'teste3.txt'
+	print "Encrypting and writing"
+	encryptedText = encryptMessage(message, KEY_PUBLIC)
+	print "Encrypted text: \n"
+	print(encryptedText)
+
+
+	#pass
+
+
+
+if __name__=='__main__':
+	main()

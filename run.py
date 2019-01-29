@@ -2,20 +2,25 @@
 
 import hashlib
 import sys
+sys.path.insert(0, 'scripts')
 import projeto
+import settings
 
+CONFIG_PATH='.config'
 #md5sum = '94be50752bbc34c88def6183d0217ba1'
 md5sum = "2fe04e524ba40505a82e03a2819429cc"
 #sha1sum = '3b404cfa745ac4118f5b322bedc2fc22af71e7a9'
 sha1sum = "793f970c52ded1276b9264c742f19d1888cbaf73"
 
+
+
+
+   
+
+
+
 def main():
-    
-    if checkPass():
-        projeto.main()
-    else:
-        print "Go away"
-    sys.exit(0)
+    projeto.main()
 
 
 
