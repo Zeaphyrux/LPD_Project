@@ -18,7 +18,7 @@ def geoIp(ip, process=False):
 	else:
 		db = False
 	print os.getcwd()
-	reader = geoip2.database.Reader('GeoIpDb.mmdb')
+	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
 	returndata = reader.city(ip)
 	country = returndata.country.iso_code
 	city = returndata.city.name
