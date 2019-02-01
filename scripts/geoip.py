@@ -5,18 +5,20 @@ import settings
 import datetime
 import sqlite
 import os
-
+from writeCsv import writeCsv
+from writePdf import writePdf
 
 #GeoIp location
 #Takes an ip address and resolves the country, city and county
 #Doesnt return anything, just prints to screen
 #Process flags work when geoIp is called as a secondary tool
-def geoIp(ip, process=False):
-	if not process:
+def geoIp(ip, db, csv, pdf):
+	if db:
 		settings.init()
 		db = settings.getDatabaseStatus()
-	else:
-		db = False
+
+
+
 	print os.getcwd()
 	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
 	returndata = reader.city(ip)
@@ -30,9 +32,10 @@ def geoIp(ip, process=False):
 
 
 	#If db flag is active we put data in the database
-	if db:
-		print "Inserting data gathered in the database"
-		sqlite.checkDb()
+	if db or csv or pdf:
+		if db:
+			print "Inserting data gathered in the database"
+			sqlite.checkDb()
 		now = datetime.datetime.now()
 		now = str(now)
 		now = now[:-7]
@@ -43,14 +46,36 @@ def geoIp(ip, process=False):
 			city = 'None'
 		if specific is None:
 			specific = 'None'
-		fields = ['Data', 'Ip', 'Country', 'City', 'Specific']
-		values = [now, ip, country, city,specific ]
+		fields = ['Data', 'Script','Ip', 'Country', 'City', 'Specific']
+		values = [now,'GeoIp', ip, country, city,specific ]
 
-		sqlite.insertIntoTable('Script', fields, values)
+		if db:
+            print "Writing to ", db
+
+			sqlite.insertIntoTable('Script', fields, values)
+			sqlite.closeDb()
+
+		if csv:
+            print "Writing to ", csv
+
+			path = settings.getCsv()
+			csv = path + csv
+			if not os.path.exists(csv):
+				writeCsv(fields, filename=csv)
+
+			writeCsv( values, filename=csv)
+		if pdf:
+            print "Writing to ", pdf
+
+			path = settings.getPdf()
+			pdf = path + pdf
+			toPdf = [fields, values]
+			writePdf(toPdf, filename=pdf)
+
+
 
 		#print fields
 		#print values
-		sqlite.closeDb()
 def geoip_country(ip):
 	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
 	returndata = reader.city(ip)

@@ -25,6 +25,8 @@ def readConf():
             CONFIGS["CSV_PATH"] = config[i][len('CSV_PATH='):]
         if config[i].startswith('PDF_PATH='):
             CONFIGS["PDF_PATH"] = config[i][len('PDF_PATH='):]
+        if config[i].startswith('KEY='):
+            CONFIGS["KEY"] = config[i][len('KEY='):]
 
 
 def getKeyPrivate():
@@ -39,6 +41,8 @@ def getCsv():
     return CONFIGS["CSV_PATH"]
 def getPdf():
     return CONFIGS["PDF_PATH"]
+def getKey():
+    return CONFIGS["KEY"]
 
 
 #initalize confs

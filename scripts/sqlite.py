@@ -8,14 +8,20 @@ PATH = 'output/'
 DBNAME = 'LPD.db'
 import settings
 import RSA
-
+import AES
 
 DBNAME = PATH+DBNAME
 
 global cursor
 global conn
 
-def checkDb(dbname=DBNAME):
+global dbname
+global dbname_crypted
+global key
+from subprocess import Popen
+
+
+def checkDb(db=DBNAME):
     '''check if db exists, if not it creates it'''
     #print dbname
     settings.init()
@@ -23,24 +29,34 @@ def checkDb(dbname=DBNAME):
     #RSA.runDecrypt(dbname+'.crypt', keyFile=settings.getKeyPrivate())
 
 
+    dbname_crypted  = db + '.crypt'
 
-    dbExists = not os.path.exists(dbname)
+
+    dbExists = not os.path.exists(dbname_crypted)
     global cursor
     global conn
+    global key
+    global dbname
+    dbname = db
+    global dbname_crypted
     if dbExists:
         
-        conn = sqlite3.connect(dbname)
+        conn = sqlite3.connect(db)
         print "Database created"
 
     else:
         
         print "Database already exists"
+        print "Decrypting...."
+        key = settings.getKey()
+
+        AES.decrypt_file(key, dbname_crypted, db, 16)
         print "Connecting....\n"
-        conn = sqlite3.connect(dbname)
+        conn = sqlite3.connect(db)
         cursor = conn.cursor()
+        Popen(['rm', dbname_crypted])
 
-
-    
+        
 '''
 Simple function if we want to pass sql code directly
 '''
@@ -103,7 +119,6 @@ def insertIntoTable(table, field, value):
     #value = value[1:-1].split(',')
     values = ''
     fields = ''
-    #print value
 
     for i in range(len(value)):
         if i==(len(value)-1):
@@ -184,10 +199,17 @@ Commits changes anc closes database
 '''
 def closeDb():
     global conn
+    global key
+    global dbname
+    global dbname_crypted
 
     conn.commit()
     conn.close()
     print "Databased closed"
+    print "Encrypting database...."
+    AES.encrypt_file(key, dbname, dbname_crypted, 16)
+    Popen(['rm', dbname])
+
     #settings.init()
     #RSA.runEncrypt(RSA_files[y], keyFile=settings.getKeyPublic())
 
@@ -266,9 +288,14 @@ def userDeleteId():
     deleteId(tableName, idd)
 
 
+
+
 def main():
     settings.init()
     a = settings.getDatabase()
+    global key
+    global dbname
+    global dbname_crypted
     print a
     checkDb()
 

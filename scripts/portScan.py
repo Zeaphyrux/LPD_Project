@@ -6,11 +6,14 @@ import sqlite
 sys.path.insert(0, 'scripts')
 
 import settings
+import os
+from writeCsv import writeCsv
+from writePdf import writePdf
 
-
-def portScan(ip, ports):
+def portScan(ip, ports,db, csv, pdf):
     settings.init()
-    db = settings.getDatabaseStatus()
+    if db:
+        db = settings.getDatabaseStatus()
     r = ports.split('-')
     r1 = int(r[0])
     r2 = int(r[1])
@@ -45,19 +48,33 @@ def portScan(ip, ports):
         openPorts = openPorts[:-2]
     else:
         openPorts = 'None'
-    if db:
-        print "Inserting data gathered in the database"
-        sqlite.checkDb()
+    if db or csv or pdf:
+
         now = datetime.now()
         now = str(now)
         now = now[:-7]
 
 
-        fields = ['Data', 'Ip', 'RangeScanned', 'PortsOpen']
-        values = [now, ip,ports, openPorts  ]
+        fields = ['Data','Script', 'Ip', 'RangeScanned', 'PortsOpen']
+        values = [now, 'Port Scan',ip,ports, openPorts  ]
+        if db:
+            print "Writing to ", db
+            sqlite.checkDb()
+            sqlite.insertIntoTable('Script', fields, values)
+            sqlite.closeDb()
+        if csv:
+            print "Writing to ", csv
+            path = settings.getCsv()
+            csv = path + csv
+            if not os.path.exists(csv):
+                writeCsv(fields, filename=csv)
 
-        sqlite.insertIntoTable('Script', fields, values)
-
+            writeCsv( values, filename=csv)
+        if pdf:
+            print "Writing to ", pdf
+            path = settings.getPdf()
+            pdf = path + pdf
+            toPdf = [fields, values]
+            writePdf(toPdf, filename=pdf)
         #print fields
         #print values
-        sqlite.closeDb()

@@ -1,76 +1,85 @@
 #!/usr/bin/python
 import time
-from reportlab.lib.enums import TA_JUSTIFY
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, inch
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table,Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_JUSTIFY
 
-PATH = "output/pdf/"
-FILENAME = "teste.pdf"
+def writePdf(data, filename):
+  doc = SimpleDocTemplate(filename, pagesize=letter)
+  # container for the 'Flowable' objects
+  elements = []
+     
+  styles = getSampleStyleSheet()     
+  styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
+  styleH = styles['Heading1']
+  logo_ipbeja = "aux/images/ipbejaLogo.JPG"
+  screenshot = "aux/images/screenshot.png"
+
+  logo_ipbeja = Image(logo_ipbeja, hAlign='LEFT')
+  logo_ipbeja.drawHeight = 1.25*inch*logo_ipbeja.drawHeight / logo_ipbeja.drawWidth
+  logo_ipbeja.drawWidth = 1.25*inch
+  screenshot = Image(screenshot, hAlign='CENTER')
+  screenshot.drawHeight = 5*inch*screenshot.drawHeight / screenshot.drawWidth
+  screenshot.drawWidth = 5*inch
+ 
+
+  #logos = [ [logo_ipbeja, 0], [logo_estig,0]]
+
+
+  elements.append(logo_ipbeja)
+  elements.append(Spacer(1, 12))
+
+  elements.append(screenshot)
+
+  ptext = """<para align=CENTER>  <font size=14> Projeto de Linguagens de Programacao Dinamicas
+  </font>    </para>"""
+
+  elements.append(Spacer(1, 12))
+
+  elements.append(Paragraph(ptext, styleH))
+  elements.append(Spacer(1, 12))
+  ptext = """<para align=CENTER>  <font size=14> Goncalo Pereira N 19020
+  </font>    </para>"""
+
+  elements.append(Paragraph(ptext, styleH))
+  elements.append(Spacer(1, 12))
+  ptext = """<para align=CENTER>  <font size=14> Beja 2019
+  </font>    </para>"""
+
+  elements.append(Paragraph(ptext, styleH))
+  elements.append(Spacer(1, 12))
+  elements.append(Spacer(1, 12))
 
 
 
- 
-doc = SimpleDocTemplate(PATH+FILENAME,pagesize=letter,
-                        rightMargin=72,leftMargin=72,
-                        topMargin=72,bottomMargin=18)
-Story=[]
-logo_estig = "aux/images/estig_logo.png"
-logo_ipbeja = "aux/images/ipbejaLogo.JPG"
 
-magName = "Pythonista"
-issueNum = 12
-subPrice = "99.00"
-limitedDate = "03/05/2010"
-freeGift = "tin foil hat"
- 
-formatted_time = time.ctime()
-full_name = "Mike Driscoll"
-address_parts = ["411 State St.", "Marshalltown, IA 50158"]
- 
-im = Image(logo_estig, inch, inch, hAlign='LEFT')
-Story.append(im)
-im2 = Image(logo_ipbeja, inch, inch, hAlign='RIGHT')
-Story.append(im2)
- 
-styles=getSampleStyleSheet()
-styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
-ptext = '<font size=12>%s</font>' % formatted_time
- 
-Story.append(Paragraph(ptext, styles["Normal"]))
-Story.append(Spacer(1, 12))
- 
-# Create return address
-ptext = '<font size=12>%s</font>' % full_name
-Story.append(Paragraph(ptext, styles["Normal"]))       
-for part in address_parts:
-    ptext = '<font size=12>%s</font>' % part.strip()
-    Story.append(Paragraph(ptext, styles["Normal"]))   
- 
-Story.append(Spacer(1, 12))
-ptext = '<font size=12>Dear %s:</font>' % full_name.split()[0].strip()
-Story.append(Paragraph(ptext, styles["Normal"]))
-Story.append(Spacer(1, 12))
- 
-ptext = '<font size=12>We would like to welcome you to our subscriber base for %s Magazine! \
-        You will receive %s issues at the excellent introductory price of $%s. Please respond by\
-        %s to start receiving your subscription and get the following free gift: %s.</font>' % (magName, 
-                                                                                                issueNum,
-                                                                                                subPrice,
-                                                                                                limitedDate,
-                                                                                                freeGift)
-Story.append(Paragraph(ptext, styles["Justify"]))
-Story.append(Spacer(1, 12))
- 
- 
-ptext = '<font size=12>Thank you very much and we look forward to serving you.</font>'
-Story.append(Paragraph(ptext, styles["Justify"]))
-Story.append(Spacer(1, 12))
-ptext = '<font size=12>Sincerely,</font>'
-Story.append(Paragraph(ptext, styles["Normal"]))
-Story.append(Spacer(1, 48))
-ptext = '<font size=12>Ima Sucker</font>'
-Story.append(Paragraph(ptext, styles["Normal"]))
-Story.append(Spacer(1, 12))
-doc.build(Story)
+
+
+  t=Table(data,style=([
+                        ('ALIGN',(0,0),(-1,-1),'CENTER'),
+                        ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                        ('BOX', (0,0), (-1,-1), 0.25, colors.black),
+                        ]
+    ))
+  t._argW[0]=1.5*inch
+     
+  elements.append(t)
+
+    # write the document to disk
+  doc.build(elements)
+
+def main():
+  data= [['A', 'B', 'C', 'P0', 'D'],
+           ['00', '01', '02', '[I,P]', '04'],
+           ['10', '11', '12', '[P,I]', '14'],
+           ['20', '21', '22', '23', '24'],
+           ['30', '31', '32', '33', '34']]
+
+  writePdf(data, 'teste.pdf')
+
+if __name__=='__main__':
+    main()

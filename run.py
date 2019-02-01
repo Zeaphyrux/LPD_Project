@@ -14,11 +14,6 @@ sha1sum = "793f970c52ded1276b9264c742f19d1888cbaf73"
 
 
 
-
-   
-
-
-
 def main():
     projeto.main()
 
