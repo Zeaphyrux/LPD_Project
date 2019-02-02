@@ -1,5 +1,6 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
+'''Run function for the project'''
 import hashlib
 import sys
 sys.path.insert(0, 'scripts')
@@ -15,7 +16,14 @@ sha1sum = "793f970c52ded1276b9264c742f19d1888cbaf73"
 
 
 def main():
-    projeto.main()
+    settings.init()
+    a = settings.getLogin()
+
+    if settings.getLogin():
+        if checkPass():
+            projeto.main()
+    else:
+        projeto.main()
 
 
 

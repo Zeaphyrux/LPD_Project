@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 '''Read logs from txt file and get important information'''
 
 
@@ -228,10 +229,7 @@ def run(filename, protocol, output):
 
             if output == 'db':
                 sqlite.insertIntoTable('Logs', fields, values)
-            elif output == 'csv':
-                print "Write csv"
-            elif output == 'pdf':
-                print "Write pdf"
+
 
     elif protocol=='ssh':
         print "Inserting data gathered in the database"
@@ -256,10 +254,7 @@ def run(filename, protocol, output):
                          locationsSrc[i],notes[i]  ]
             if output == 'db':
                 sqlite.insertIntoTable('Logs', fields, values)
-            elif output == 'csv':
-                print "Write csv"
-            elif output == 'pdf':
-                print "Write pdf"
+
             
     if output == 'db':
         sqlite.closeDb()

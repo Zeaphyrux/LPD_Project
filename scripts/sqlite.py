@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+'''SQLite database operations'''
 import sys
 import os 
 import sqlite3
@@ -20,7 +22,9 @@ global dbname_crypted
 global key
 from subprocess import Popen
 
-
+'''
+If the database doesn't exist it creates it. If it does exist it decrypts it
+and connects'''
 def checkDb(db=DBNAME):
     '''check if db exists, if not it creates it'''
     #print dbname
@@ -28,9 +32,10 @@ def checkDb(db=DBNAME):
     #dbname = settings.getDatabase()
     #RSA.runDecrypt(dbname+'.crypt', keyFile=settings.getKeyPrivate())
 
+    global dbname_crypted
 
     dbname_crypted  = db + '.crypt'
-
+    #print db
 
     dbExists = not os.path.exists(dbname_crypted)
     global cursor
@@ -38,11 +43,20 @@ def checkDb(db=DBNAME):
     global key
     global dbname
     dbname = db
-    global dbname_crypted
+    key = settings.getKey()
+
     if dbExists:
         
         conn = sqlite3.connect(db)
+        print "Database does not exist, creating..."
+        create_logs = '''CREATE TABLE "Logs" ( `ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, `LogName` TEXT, `Protocol` TEXT, `Month` TEXT, `Day` INTEGER, `Time` TEXT, `SrcIp` TEXT, `SrcCountry` TEXT, `SrcCity` TEXT, `SrcSpecific` TEXT, `DstIp` TEXT, `DstCountry` TEXT, `DstCity` TEXT, `DstSpecific` TEXT, `Notes` TEXT )'''
+        create_script = '''CREATE TABLE "Script" ( `ID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, `Data` TEXT, `Script` TEXT, `Ip` TEXT, `Country` TEXT, `City` TEXT, `Specific` TEXT, `RangeScanned` TEXT, `PortsOpen` TEXT )'''
+        cursor = conn.cursor()
+        cursor.execute(create_logs)
+        cursor.execute(create_script)
         print "Database created"
+        print "Table 'Logs' has been generated to insert the information from processed logs"
+        print "Table 'Script' has been generated to insert the information gathered from the scripts"
 
     else:
         
@@ -65,8 +79,10 @@ def executeSQL(sqlCode):
     global cursor
     cursor.execute(sqlCode)
     info = cursor.fetchall()
-    for i in range(len(info)):
-        print info [i]
+    #for i in range(len(info)):
+    #    print info [i]
+
+    return info
     #print "Code runned"
 '''
 Creates table with given arguments
@@ -128,9 +144,9 @@ def insertIntoTable(table, field, value):
             values+= "'"+value[i]+"',"
             fields+= field[i]+","
 
-    
     #print values
-    sql = ''' INSERT INTO {0}({1})  VALUES({2}) '''.format(table, fields, values)
+    #print fields
+    sql = " INSERT INTO {0}({1})  VALUES({2}) ".format(table, fields, values)
     #print sql
     #print sql
     cursor.execute(sql)

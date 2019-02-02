@@ -1,7 +1,7 @@
 #!/usr/bin/python
-'''
+"""
 Projeto de LPD
-'''
+"""
 # -*- coding: utf-8 -*-
 #imports
 import sys
@@ -25,11 +25,13 @@ import RSA_create
 import processLogs
 import AES
 from subprocess import Popen
-
+import analyze
+import GeoMap
 
 #Variaveis usadas ao longo do programa
-Parameters = ["-h", "-v", "-nat", "-g", "-uF", "-pS", "-p", "-dbA", "-e", "-d", "-c", "-csv", 
-                    "-pdf", '-pL', '-db', '-dbC', '-dbE', '-dbD']
+Parameters = ["-h", "-v", "-nat", "-g", "-uF", "-pS", "-p", "-dbA", "-eR", "-dR", "-c", "-csv", 
+                    "-pdf", '-pL', '-db', '-dbC', '-dbE', '-dbD','-anL', '-anS', '-gMS', '-gML',
+                    "-dbP", "-dbO", "-eA", "-dA"]
 Verbouse = False
 Geo_ip = 0
 PortIp = 0
@@ -46,7 +48,14 @@ ProcessLogs_File = ''
 WriteDb = ''
 WriteCsv = ''
 WritePdf = ''
-
+analyzeLogs = ''
+analyzeScripts = ''
+geoMapS = ''
+geoMapL = ''
+dbPdf = ''
+dbCsv = ''
+AES_do = 0
+AES_files = []
 
 
     #########################################
@@ -112,24 +121,49 @@ def validatePortRange(portRange):
 def usage():
     print subprocess.check_output('figlet LPD --metal',shell=True)
     print "Projecto de Linguagens de Programacao Dinamicas\n"
-    print "   {}:\t\tHelp menu (This) ".format(Parameters[0])
-    print "   {}:\tEstablished Connections ".format(Parameters[2]) 
-    print "   {}:\t\tVerbouse mode        ".format(Parameters[1])
-    print "   {}:\t\tGeoip location           ex: -g  192.168.1.1".format(Parameters[3])
-    print "   {}:\t\tPort Scan                ex: -pS 192.168.1.1".format(Parameters[5])
-    print "   {}:\t\tPorts (0-1024)           ex: -p  0-2042  ".format(Parameters[6])
-    print "   {}:\t\tUdp Flood (CAUTION)      ex: -uF 192.168.1.1".format(Parameters[4])
-    print "   {}:\t\tRSA Encription           ex: -e <file1> <file2> ...".format(Parameters[8])
-    print "   {}:\t\tRSA Decription           ex: -d <file1> <file2> ...".format(Parameters[9])
-    print "   {}:\t\tRSA Create Key Pair      ex: -c ".format(Parameters[10])
-    print "   {}:\t\tProcess Logs(http, ssh)  ex: -pL http <file>".format(Parameters[13])
-    print "      \t\t                         ex: -pL ssh  <file>"
-    print "   {}:\tExport to csv            ex: -csv <file>".format(Parameters[11])
-    print "   {}:\tExport to pdf            ex: -pdf <file>".format(Parameters[12])
-    print "   {}:\tExport to db (defaulf)   ex: -db".format(Parameters[13])
-    print "   {}:\tDatabase Check           ex: -dbC".format(Parameters[15])
-    print "   {}:\tDatabase Encrypt         ex: -dbE".format(Parameters[15])
-    print "   {}:\tDatabase Decrypt         ex: -dbD".format(Parameters[15])
+    #print "   {}:\t\tHelp menu (This) ".format(Parameters[0])
+    #print ""
+
+    print "**** Network *****"
+    print "   {}:\tEstablished Connections \t\tex: -nat".format(Parameters[2]) 
+  #  print "   {}:\t\tVerbouse mode        ".format(Parameters[1])
+    print "   {}:\t\tGeoip location           \t\tex: -g  192.168.1.1".format(Parameters[3])
+    print "   {}:\t\tPort Scan                \t\tex: -pS 192.168.1.1".format(Parameters[5])
+    print "   {}:\t\tPorts (0-1024)           \t\tex: -p  0-2042  ".format(Parameters[6])
+    print "   {}:\t\tUdp Flood (CAUTION)      \t\tex: -uF 192.168.1.1".format(Parameters[4])
+    print ""
+    print "***** Encription *******"
+    print "   {}:\t\tRSA Create Key Pair      \t\tex: -c ".format(Parameters[10])
+    print "   {}:\t\tRSA Encription           \t\tex: -eR <file1> <file2> ...".format(Parameters[8])
+    print "   {}:\t\tRSA Decription           \t\tex: -dR <file1> <file2> ...".format(Parameters[9])
+    print "   {}:\t\tAES Encription           \t\tex: -eA <file1> <file2> ...".format(Parameters[24])  
+    print "   {}:\t\tAES Decription           \t\tex: -dA <file1> <file2> ...".format(Parameters[25])  
+
+    print ""
+    print "***** Database  *******"
+    #print "AES encryption "
+    print "   {}:\tDatabase Check               \t\tex: -dbC".format(Parameters[15])
+    print "   {}:\tDatabase AES Encrypt         \t\tex: -dbE".format(Parameters[16])
+    print "   {}:\tDatabase AES Decrypt         \t\tex: -dbD".format(Parameters[17])
+    print ""
+    print "***** Processing ******"
+    print "   {}:\tExport GeoMap from Script table     \t ex: -gMS <file>".format(Parameters[20])
+    print "   {}:\tExport GeoMap from Logs table     \t ex: -gML <file>".format(Parameters[21])
+    print "   {}:\tAnalyze Logs table and export to pdf     ex: -anL <file>".format(Parameters[18])
+    print "   {}:\tAnalyze Script table and export to pdf   ex: -anS <file>".format(Parameters[19])
+    print "   {}:\t\tProcess Logs(http, ssh)                  ex: -pL http <file>".format(Parameters[13])
+    print "      \t\tto default database                      ex: -pL ssh  <file>"
+
+    print ""
+    print "***** Exports    *******"
+    print "May be used with the network actions"
+    print "   {}:\tExport to Csv            \t\tex: -csv <file>".format(Parameters[11])
+    print "   {}:\tExport to Pdf                    \tex: -pdf <file>".format(Parameters[12])
+    print "   -db:\t\tExport to Db             \t\tex: -db".format(Parameters[13])
+    print "   {}:\tFrom db export to Pdf\t\t\tex: -dfP".format(Parameters[22])
+    print "   {}:\tFrom db export to Csv\t\t\tex: -dfO".format(Parameters[23])
+
+#    print ""
 
 #    print "   {}:\t\tDatabase Funcionalities  ex: -db args".format(Parameters[7])    
 #    print "                         -db {} : Checks database status".format(DatabaseParameters[0])
@@ -140,7 +174,10 @@ def usage():
 #    print "                         -db {}    : Selects and prints information in table".format(DatabaseParameters[5])
 #    print "                         -db {}   : Updates Id information".format(DatabaseParameters[6])
 #    print "                         -db {}   : Deletes Id".format(DatabaseParameters[7])
-#Print dos erros facilitado    
+#Print dos erros facilitado  
+
+
+
 def errorArgument(arg, errorCode):
     print "You need to specify an argument after the parameter "+arg
     sys.exit(errorCode)
@@ -162,6 +199,7 @@ def start():
 
 
     if len(sys.argv) < 2:
+        Popen('clear')
         usage()
         sys.exit(0)
     #use arguments to set flags    
@@ -308,9 +346,71 @@ def start():
             print "Database decrypted"
             Popen(['rm', dbnam_crypt])
 
+#Analyze logs
+        if sys.argv[i] == Parameters[18]:
+            try:
+               global analyzeLogs
+               analyzeLogs = sys.argv[i+1]
+            except IndexError:
+                errorArgument("-arL", 1)
 
+        if sys.argv[i] == Parameters[19]:
+            try:
+               global analyzeScripts
+               analyzeScripts = sys.argv[i+1]
+            except IndexError:
+                errorArgument("-arS", 1)
+#GeoMap
+        if sys.argv[i] == Parameters[20]:
+            try:
+               global geoMapS
+               geoMapS = sys.argv[i+1]
+            except IndexError:
+                errorArgument("-gMS", 1)
+        if sys.argv[i] == Parameters[21]:
+            try:
+               global geoMapL
+               geoMapL = sys.argv[i+1]
+            except IndexError:
+                errorArgument("-gML", 1)
+#Db to csv/pdf
+        if sys.argv[i] == Parameters[22]:
+            try:
+               global dbPdf
+               dbPdf = sys.argv[i+1]
+            except IndexError:
+                errorArgument("-dbP", 1)
+        if sys.argv[i] == Parameters[23]:
+            try:
+               global dbCsv
+               dbCsv = sys.argv[i+1]
+            except IndexError:
+                errorArgument("-dbO", 1)
+#AES Encrypt
+        if sys.argv[i] == Parameters[24]:
+            global AES_do
+            global AES_files
+            try:
+                for x in range((len(sys.argv)) - i-1):
+                    if sys.argv[i+1+x].startswith('-') or not bool(sys.argv[i+x+i]):
+                        break
+                    else:
+                        AES_files.append(sys.argv[i+x+1])
 
-
+                AES_do = 1
+            except IndexError:
+                print "No file to encript specified"
+#AES Decrypt
+        if sys.argv[i] == Parameters[25]:
+            try:
+                for x in range((len(sys.argv)) - i-1):
+                    if sys.argv[i+1+x].startswith('-') or not bool(sys.argv[i+x+i]):
+                        break
+                    else:
+                        AES_files.append(sys.argv[i+x+1])
+                AES_do = 2
+            except IndexError:
+                print "No file to decript specified"
 
 #check for each flag and run the function
 def run():
@@ -340,15 +440,17 @@ def run():
         keys_filename = raw_input("Enter the filename of the keys -->  ")
         RSA_create.run(keys_filename)
 
-
+    if AES_do == 1:
+        for y in range(len(AES_files)):
+            AES.encrypt_file(settings.getKey(),AES_files[y],(AES_files[y]+".crypt"))
+            Popen(['rm', AES_files[y]])
+    if AES_do == 2:
+        for y in range(len(AES_files)):
+            AES.decrypt_file(settings.getKey(),AES_files[y],AES_files[y][:-6])
+            Popen(['rm', AES_files[y]])
     if ProcessLogs:
-        while(1):
-            output = raw_input("Write where? (csv / pdf / db) -->  ")
-            if output=='csv' or output=='pdf' or output=='db':
-                break
-            else:
-                print "Output format not understood, try again"
-        processLogs.run(ProcessLogs_File, ProcessLogs_Protocol, output)
+
+        processLogs.run(ProcessLogs_File, ProcessLogs_Protocol, 'db')
     if Database:
         sqlite.checkDb()
         if DatabaseAction==DatabaseParameters[0]:
@@ -369,8 +471,18 @@ def run():
             sqlite.userDeleteId()
 
         sqlite.closeDb()
-
-
+    if analyzeLogs:
+        analyze.runPdfChartsLogs('output/pdf/'+ analyzeLogs)
+    if analyzeScripts:
+        analyze.runPdfChartsScript('output/pdf/'+analyzeScripts)
+    if geoMapS:
+        GeoMap.runDbGeoMapS(geoMapS)
+    if geoMapL:
+        GeoMap.runDbGeoMapL(geoMapL)
+    if dbPdf:
+        analyze.exportDbPdf(dbPdf)
+    if dbCsv:
+        analyze.exportDbCsv(dbCsv)
 
 
     #sqlite.checkDb(settings.getDatabase())

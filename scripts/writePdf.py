@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""Writes a pdf"""
 import time
 
 from reportlab.lib import colors
@@ -7,8 +9,19 @@ from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table,Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY
+import os
 
-def writePdf(data, filename):
+
+def writePdf(data, filename, images=[]):
+  """ Writes a pdf with a certain defined parameters such as the cover page
+    data:
+      data to write on table
+    filename:
+      File to write
+    images:
+      Images to insert
+  """
+
   doc = SimpleDocTemplate(filename, pagesize=letter)
   # container for the 'Flowable' objects
   elements = []
@@ -28,6 +41,7 @@ def writePdf(data, filename):
  
 
   #logos = [ [logo_ipbeja, 0], [logo_estig,0]]
+
 
 
   elements.append(logo_ipbeja)
@@ -53,21 +67,36 @@ def writePdf(data, filename):
   elements.append(Paragraph(ptext, styleH))
   elements.append(Spacer(1, 12))
   elements.append(Spacer(1, 12))
+  elements.append(Spacer(1, 12))
+  elements.append(Spacer(1, 12))
+  elements.append(Spacer(1, 12))
 
 
+  if data==0:
+    pass
+  else:
+    t=Table(data,style=([
+                          ('ALIGN',(0,0),(-1,-1),'CENTER'),
+                          ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                          ('BOX', (0,0), (-1,-1), 0.25, colors.black),
+                          ]
+      ))
+    t._argW[0]=1.5*inch
+       
+    elements.append(t)
 
 
+  #Insert generated images
+  for i in range(len(images)):
+    if not os.path.exists(images[i]):
+      continue
+    imag = Image(images[i], hAlign='CENTER')
+    imag.drawHeight = 5*inch*imag.drawHeight / imag.drawWidth
+    imag.drawWidth = 5*inch
+    elements.append(imag)
+    elements.append(Spacer(1, 12))
 
 
-  t=Table(data,style=([
-                        ('ALIGN',(0,0),(-1,-1),'CENTER'),
-                        ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                        ('BOX', (0,0), (-1,-1), 0.25, colors.black),
-                        ]
-    ))
-  t._argW[0]=1.5*inch
-     
-  elements.append(t)
 
     # write the document to disk
   doc.build(elements)

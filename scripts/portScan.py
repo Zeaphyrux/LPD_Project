@@ -1,4 +1,8 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+'''
+Port Scanner
+'''
 from datetime import datetime
 import socket
 import sys
@@ -11,6 +15,21 @@ from writeCsv import writeCsv
 from writePdf import writePdf
 
 def portScan(ip, ports,db, csv, pdf):
+    '''
+    Port scanner
+
+    ip:
+        Ip to scan
+        
+    ports:
+        Range of ports to scan. Ex: 521-1024
+
+    db:
+        If true exports to the default database
+
+    csv and pdf:
+        If used exports to that format, the filename is the variable
+    '''
     settings.init()
     if db:
         db = settings.getDatabaseStatus()

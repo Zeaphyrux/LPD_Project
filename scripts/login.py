@@ -1,5 +1,8 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
+'''
+Login function, compares input string with the predifened hash
+'''
 import RSA
 import sys
 import hashlib
@@ -23,9 +26,6 @@ def checkPassword():
             print 'wrong password, try again'
     print 'you have failed'
     return False
-
-def decriptScript():
-    
 
 
 

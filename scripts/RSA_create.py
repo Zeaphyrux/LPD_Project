@@ -1,5 +1,6 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
+'''Creates a RSA key pair'''
 from Crypto.PublicKey import RSA
 from Crypto import Random
 
@@ -42,16 +43,19 @@ def exportKey(key, filename):
             print(private_key)
             print(public_key)
         else:
-            file = open("RSApublic_"+filename+'.pem', 'wb')
+            file = open("output/RSApublic_"+filename+'.pem', 'wb')
             file.write(public_key)
             file.close()
-            file = open("RSAprivate_"+filename+'.pem', 'wb')
+            file = open("output/RSAprivate_"+filename+'.pem', 'wb')
             file.write(private_key)
             file.close()
     else:
         print "Incorrect parameters"
 
 def run(filename):
+    '''
+    Run function, exports files to filename
+    '''
     generateKeys()
     exportKey('both', filename)
 

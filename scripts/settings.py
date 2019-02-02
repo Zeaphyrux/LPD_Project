@@ -1,12 +1,20 @@
 #!/usr/bin/python
 
-
+# -*- coding: utf-8 -*-
+'''
+Configuration file. Reads '.config' file and sets certain configurations
+'''
+import os
 CONFIG_PATH='.config'
 
 
 CONFIGS = {}
 
+
 def readConf():    
+    '''
+    Reads the configuration file
+    '''
     global CONFIGS
     f = open(CONFIG_PATH, 'r')
     config = f.read()
@@ -27,8 +35,10 @@ def readConf():
             CONFIGS["PDF_PATH"] = config[i][len('PDF_PATH='):]
         if config[i].startswith('KEY='):
             CONFIGS["KEY"] = config[i][len('KEY='):]
+        if config[i].startswith('LOGIN='):
+            CONFIGS["LOGIN"] = config[i][len('LOGIN='):]
 
-
+#Get keys for the configurations
 def getKeyPrivate():
     return CONFIGS["RSA_KEY_PRIVATE"]
 def getKeyPublic():
@@ -42,7 +52,19 @@ def getCsv():
 def getPdf():
     return CONFIGS["PDF_PATH"]
 def getKey():
-    return CONFIGS["KEY"]
+    if os.path.exists(CONFIGS["KEY"]):
+        f = open(CONFIGS["KEY"])
+        f = f.read()
+        print f
+        return f
+    else:
+        return CONFIGS["KEY"]
+def getLogin():
+    if CONFIGS["LOGIN"] == 1:
+        return True
+    else:
+        return False
+
 
 
 #initalize confs
